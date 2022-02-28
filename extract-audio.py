@@ -18,7 +18,7 @@ def is_exist(file_path):
 def convert_to_audio(file_path, output_path):
 
     # handle filename with whitespace
-    [input_name, input_type] = os.path.splitext(file_path)
+    [input_name, input_type] = os.path.splitext(os.path.basename(file_path))
     output_name = 'audio-' + '"' + input_name + '"'
     file_path = '"' + file_path + '"'
 
@@ -61,7 +61,7 @@ def avaliable_type(file_path):
         all_aval_type = [f[0] for f in reader]
 
     # obtain file format
-    [input_name, input_type] = os.path.splitext(file_path)
+    [input_name, input_type] = os.path.splitext(os.path.basename(file_path))
 
     # remove '.' and check whether format avaliable for ffmpeg
     if input_type[1:] in all_aval_type:
@@ -84,7 +84,7 @@ def main():
               'does not exist or format is not avaliable')
         exit(1)
     print("Upload to gcs..")
-    [input_name, input_type] = os.path.splitext(file_path)
+    [input_name, input_type] = os.path.splitext(os.path.basename(file_path))
     output_name = 'audio-' + input_name + '.flac'
     upload_file = '"' + output_name + '"'
     cmd = "gsutil cp " + output_path + upload_file + " gs://test-convert-audio"
