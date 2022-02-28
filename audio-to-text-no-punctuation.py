@@ -212,15 +212,15 @@ def main():
         try:
             response = transcribe_gcs(arg)
             print("Transcribe successfully!")
-        except BaseException:
-            print('error: transcribe failed!')
+        except BaseException as e:
+            print('error: transcribe failed!', e)
             exit(1)
     else:
         try:
             response = transcribe_file(arg)
             print("Transcribe successfully!")
-        except BaseException:
-            print('error: transcribe failed!')
+        except BaseException as e:
+            print('error: transcribe failed!', e)
             exit(1)
     # write into doc
     try:
