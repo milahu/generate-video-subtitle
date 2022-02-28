@@ -31,8 +31,8 @@ import timestr
 import string
 # Imports the Google Cloud client library
 from google.cloud import speech
-from google.cloud.speech import enums
-from google.cloud.speech import types
+import google.cloud.speech_v1 as enums
+from google.cloud.speech_v1 import types
 
 
 def transcribe_file(speech_file):
