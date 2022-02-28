@@ -3,6 +3,7 @@
 import os
 import sys
 import csv
+import subprocess
 path = os.getcwd()
 
 
@@ -83,15 +84,15 @@ def main():
         print('error: ' + file_path,
               'does not exist or format is not avaliable')
         exit(1)
-    print("Upload to gcs..")
+    print("Upload to Google Cloud Storage ...")
     [input_name, input_type] = os.path.splitext(os.path.basename(file_path))
     output_name = 'audio-' + input_name + '.flac'
-    upload_file = '"' + output_name + '"'
-    cmd = "gsutil cp " + output_path + upload_file + " gs://test-convert-audio"
+    args = ["gsutil", "cp", output_path + output_name, " gs://test-convert-audio/"]
     try:
-        os.system(cmd)
+        subprocess.run(args)
+        # TODO test: gsutil: command not found
         print("Upload successfully. You can use: " + '"' +
-              "gs://test-convert-audio/" + 'audio-' + output_name + '"')
+              "gs://test-convert-audio/" + output_name + '"')
     except BaseException:
         print('error: upload failed!')
         exit(1)
