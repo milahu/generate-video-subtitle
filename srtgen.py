@@ -70,11 +70,15 @@ def out(*args, **kwargs):
 
 def print_usage():
     argv0 = os.path.basename(sys.argv[0])
-    stderr(f"usage:")
+    stderr(f"usage")
     stderr(f"  {argv0} --apikey path/to/keyfile.json path/to/input-video.mp4")
     stderr()
-    stderr(f"set keyfile via environment variable:")
+    stderr(f"environment variables")
     stderr(f"  GOOGLE_APPLICATION_CREDENTIALS=path/to/keyfile.json {argv0} path/to/input-video.mp4")
+    stderr()
+    stderr(f"keyfile")
+    stderr(f"  This program requires a Google account and an API key")
+    stderr(f"  https://console.cloud.google.com/projectcreate")
 
 def check_api_key():
     p = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")

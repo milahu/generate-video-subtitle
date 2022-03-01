@@ -4,18 +4,22 @@ Generate subtitles for video file
 
 Using [Google Cloud Speech-To-Text API](https://cloud.google.com/speech-to-text)
 
-This requires a Google account and an API key:
+This program requires a Google account and an API key:
 [Create project on Google Cloud](https://console.cloud.google.com/projectcreate)
 
 ## usage
 
 ```
 $ ./srtgen.py 
-usage:
+usage
   srtgen.py --apikey path/to/keyfile.json path/to/input-video.mp4
 
-set keyfile via environment variable:
+environment variables
   GOOGLE_APPLICATION_CREDENTIALS=path/to/keyfile.json srtgen.py path/to/input-video.mp4
+
+keyfile
+  This program requires a Google account and an API key
+  https://console.cloud.google.com/projectcreate
 ```
 
 subtitle is written to stdout and `output/xxxxxx-input-video.mp4/output_file.srt`  

@@ -25,7 +25,7 @@ buildPythonPackage rec {
     repo = "srtgen";
     rev = "09322af1dda2a35764ca3652ed5fd1a330a8090d";
     sha256 = ""; # todo
-  }
+  };
   */
   propagatedBuildInputs = with python.pkgs; [
     pydub
