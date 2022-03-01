@@ -103,10 +103,9 @@ def transcribe_file(input_video_path):
     log(f"input_video_hash = {input_video_hash}")
 
     tempdir = f"{input_video_hash}-{os.path.basename(input_video_path)}"[0:240] # limit 255 chars
+    tempdir = os.path.join("output", tempdir)
     log(f"tempdir = {tempdir}")
-
-    if not os.path.exists(tempdir):
-        os.mkdir(tempdir)
+    os.makedirs(tempdir, exist_ok=True)
 
     output_file_path = os.path.join(tempdir, "output_file.srt")
     output_file_handle = open(output_file_path, "w")
