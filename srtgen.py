@@ -4,8 +4,7 @@
 # Generate subtitles for video file
 
 # config
-config_language_code = 'en' # english
-config_language_phrases = [] # unusual words, technical terms, acronyms
+config_language_code = 'en' # english https://cloud.google.com/speech-to-text/docs/languages
 config_min_silence_len = 1500 # high value -> few long chunks
 config_seek_step = 100 # high value -> split faster
 config_silence_thresh = -14 # high value -> many short chunks
@@ -22,18 +21,17 @@ import codecs
 import string
 import subprocess
 import hashlib
+import math
+import datetime
 
+# speech recognition
 from google.cloud import speech_v1 as speech
 import google.cloud.speech_v1 as enums
 from google.cloud.speech_v1 import types
 
+# audio processing
 import pydub # pydub.AudioSegment
 import pydub.silence # pydub.silence.split_on_silence
-#from pydub_silence import split_on_silence # patched version
-
-import math # todo move
-from datetime import datetime, timezone
-
 
 # logging messages go to stderr
 def log(*args, **kwargs):
@@ -86,7 +84,7 @@ def check_api_key():
         log("using api key", os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
 
 def format_time_srt(seconds):
-    return datetime.fromtimestamp(seconds, tz=timezone.utc).strftime('%H:%M:%S,%f')[:-3] # note: comma for SRT format
+    return datetime.datetime.fromtimestamp(seconds, tz=datetime.timezone.utc).strftime('%H:%M:%S,%f')[:-3] # note: comma for SRT format
 
 def transcribe_file(input_video_path):
     """Transcribe the given video file."""
@@ -189,6 +187,8 @@ def transcribe_file(input_video_path):
             content = audio_file.read()
 
         audio = types.RecognitionAudio(content=content)
+
+        #config_language_phrases = [] # unusual words, technical terms, acronyms
 
         config = types.RecognitionConfig(
             encoding=enums.RecognitionConfig.AudioEncoding.FLAC,
