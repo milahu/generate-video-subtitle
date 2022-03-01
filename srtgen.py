@@ -45,7 +45,7 @@ from datetime import datetime, timezone
 
 # logging messages go to stderr
 def log(*args, **kwargs):
-    args = ["log: " + " ".join(args).replace("\n", "\nlog: ")]
+    args = ["log: " + " ".join([str(a) for a in args]).replace("\n", "\nlog: ")]
     #args = ["log:"] + list(args)
     kwargs["file"] = sys.stderr
     print(*args, **kwargs)
@@ -91,6 +91,9 @@ def check_api_key():
         log("using api key", os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
 
 flac_audio_rate = 16000
+
+def format_time_srt(seconds):
+    return datetime.fromtimestamp(seconds, tz=timezone.utc).strftime('%H:%M:%S,%f')[:-3] # note: comma for SRT format
 
 def transcribe_file(input_video_path):
     """Transcribe the given video file."""
@@ -171,26 +174,6 @@ def transcribe_file(input_video_path):
                 log("split chunk by frame:", f1, f2)
                 chunk_list.append(audio.get_sample_slice(f1, f2))
 
-    if False:
-        # collect chunks into groups
-        # https://stackoverflow.com/a/312464/10440128
-        def chunks(L, n):
-            """Yield successive n-sized chunks from list L."""
-            for i in range(0, len(L), n):
-                yield L[i:i+n]
-
-        chunks_per_group = 1
-
-        # FIXME Inline audio exceeds duration limit. [audio is too long]
-        log(f"grouping chunks into {math.ceil(len(chunk_list) / chunks_per_group)} chunks")
-        chunk_list_new = []
-        for chunk_id, chunk_group in enumerate(chunks(chunk_list, chunks_per_group)):
-            audio_chunk = chunk_group[0]
-            for c in chunk_group[1:]:
-                audio_chunk += c
-            chunk_list_new.append(audio_chunk)
-        chunk_list = chunk_list_new
-
     client = speech.SpeechClient()
     response = None
 
@@ -240,19 +223,6 @@ def transcribe_file(input_video_path):
             continue
 
         seconds_per_subtitle = 3 # TODO ...
-
-        def format_time_srt(seconds):
-            return datetime.fromtimestamp(seconds, tz=timezone.utc).strftime('%H:%M:%S,%f')[:-3] # note: comma for SRT format
-
-        # old code ...
-        if False:
-            # FIXME t1s is wrong
-            t1s = format_time_srt(total_time)
-            t2s = format_time_srt(total_time + seconds_per_subtitle)
-
-            sentences = [result.alternatives[0].transcript.strip() for result in this_response.results]
-
-            out(f"{subtitle_index}\n{t1s} --> {t2s}\n" + " ".join(sentences) + "\n")
 
         def round_2f(f):
             """round to 1 digit precision, for example 0.099 -> 0.1"""
@@ -350,153 +320,6 @@ def transcribe_file(input_video_path):
     log(f"recognized all {len(chunk_list)} chunks")
     return response
 
-
-# TODO refactor or remove
-def transcribe_gcs(gcs_uri):
-    """Transcribe the given audio file asynchronously."""
-    client = speech.SpeechClient()
-
-    audio = types.RecognitionAudio(uri=gcs_uri)
-    config = types.RecognitionConfig(
-        encoding=enums.RecognitionConfig.AudioEncoding.FLAC,
-        sample_rate_hertz=16000,
-        language_code='zh',
-        speech_contexts=[
-            speech.types.SpeechContext(
-                #phrases=[
-                #    '思睿', '在思睿', '海外教育', '双师', '贴心的辅导', '授课', '云台录播', '讲义', '赢取',
-                #    '引起', '只为', '相结合', '坚持而努力', '越来越近', '思睿用爱'
-                #]
-            )
-        ],
-        enable_word_time_offsets=True,
-        enable_automatic_punctuation=True)
-    # [START speech_python_migration_async_response]
-    operation = client.long_running_recognize(config=config, audio=audio)
-    # [END speech_python_migration_async_request]
-
-    log('Waiting for operation to complete...')
-    response = operation.result(timeout=90)
-    return response
-
-
-def write_into_doc(response, output_path):
-    #  from google.protobuf.json_format import MessageToJson
-    #  with open('./test-json.txt', 'w', encoding='utf-8') as writer:
-    #      json.dump(MessageToJson(source), writer, ensure_ascii=False)
-
-    log('Waiting for writing doc to complete...')
-
-    with codecs.open(output_path + 'transcript-text.txt', 'w',
-                     'utf-8') as writer:
-        for result in response.results:
-            alternative = result.alternatives[0].transcript
-            writer.write(alternative)
-
-
-def write_into_subtitle(response, output_path):
-
-    log('Waiting for writing subtitle to complete...')
-
-    # read the chinese punctuation
-    with codecs.open(output_path + 'transcript-text.txt', 'r',
-                     'utf-8') as reader:
-        words = reader.read()
-        punctuation = dict()
-        punc_index_list = []
-        punc_index = 0
-        for w in words:
-            if not w.isalpha() and w not in string.whitespace:
-                punctuation[str(punc_index)] = w
-                punc_index_list.append(punc_index)
-                punc_index += 1
-            elif w.isalpha():
-                punc_index += 1
-
-    with codecs.open(output_path + 'subtitle-with-punctuation.srt', 'w',
-                     'utf-8') as writer:
-        i = 1  # setting the sequence number for srt
-        init = True  # init flag
-        word_index = 0
-        curr = 0  # current punctuation number
-        for result in response.results:
-            alternative = result.alternatives[0]
-            line = ""  # each line contain 10 words
-            counter = 0  # word counter in a line
-            # how many words remaining in this result
-            num_woeds = len(alternative.words)
-            start_next_para = True
-            # loop the word in the result
-            for word_info in alternative.words:
-                word_index += 1
-                num_woeds -= 1
-                counter += 1
-                word = word_info.word
-                if init:
-                    start_time = word_info.start_time
-                    str_start = timestr.timefm(start_time.seconds +
-                                               start_time.nanos * 1e-9)
-                    init = False
-                if start_next_para:
-                    start_time = word_info.start_time
-                    str_start = timestr.timefm(start_time.seconds +
-                                               start_time.nanos * 1e-9)
-                    start_next_para = False
-
-                if counter < 10:
-                    # when the num of word in this line less than
-                    # 10 word, we only add this word in this line
-                    line += word
-                    if word_index == (punc_index_list[curr]):
-                        curr += 1
-                        line += punctuation[str(word_index)]
-                        word_index += 1
-                else:
-                    # the line is enouge 10 words, we inster seq num,
-                    # time and line into the srt file
-                    counter = 0  # clear the counter for nex iteration
-                    end_time = word_info.end_time
-                    str_end = timestr.timefm(end_time.seconds +
-                                             end_time.nanos * 1e-9)
-                    writer.write(str(i))  # write the seq num into file,
-                    # and then add 1
-                    i += 1
-                    line += word
-                    if word_index == (punc_index_list[curr]):
-                        curr += 1
-                        line += punctuation[str(word_index)]
-                        word_index += 1
-                    writer.write('\n')
-                    writer.write(str_start)  # write start time
-                    writer.write(' --> ')
-                    writer.write(str_end)  # write end time
-                    writer.write('\n')
-                    writer.write(line)  # write the word
-                    line = ""  # clear the line for next iteration
-                    writer.write('\n\n')
-                    start_time = word_info.start_time
-                    str_start = timestr.timefm(start_time.seconds +
-                                               start_time.nanos * 1e-9)
-
-                # avoid miss any word, because counter < 0,
-                # but this iteration has no word remain
-                if counter < 10 and num_woeds == 0:
-                    end_time = word_info.end_time
-                    str_end = timestr.timefm(end_time.seconds +
-                                             end_time.nanos * 1e-9)
-
-                    writer.write(str(i))
-                    i += 1
-                    writer.write('\n')
-                    writer.write(str_start)  # write start time
-                    writer.write(' --> ')
-                    writer.write(str_end)  # write end time
-                    writer.write('\n')
-                    writer.write(line)  # write the word
-                    line = ""
-                    writer.write('\n\n')
-
-
 def main():
     # parse arguments
     # TODO better ... use argparse
@@ -519,7 +342,8 @@ def main():
 
     try:
         if input_video_path.startswith('gs://'):
-            transcribe_gcs(input_video_path)
+            raise Exception("not implemented: gs protocol")
+            #transcribe_gcs(input_video_path)
         else:
             transcribe_file(input_video_path)
         log("Transcribe done")
