@@ -47,7 +47,8 @@ temporary files are stored in `output/xxxxxx-input-video.mp4/`
 
 ### postprocessing tools
 
-* subtitleeditor
+* [subtitleeditor](https://github.com/kitone/subtitleeditor)
+* [translatesubtitles.co](https://translatesubtitles.co/)
 
 ### similar tools
 
