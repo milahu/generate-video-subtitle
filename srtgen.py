@@ -82,7 +82,7 @@ def log_usage():
     stderr(f"environment variables")
     stderr(f"  GOOGLE_APPLICATION_CREDENTIALS=path/to/apikey.json {argv0} path/to/input-video.mp4")
     stderr()
-    stderr(f"keyfile")
+    stderr(f"apikey.json")
     stderr(f"  This program requires a Google account and an API key")
     stderr(f"  https://console.cloud.google.com/projectcreate")
 
