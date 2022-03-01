@@ -45,7 +45,7 @@ let
   python-packages = pp: with pp; [
     google-cloud-speech
     setuptools # workaround https://github.com/NixOS/nixpkgs/pull/162173
-    SpeechRecognition
+    #SpeechRecognition
     pydub
   ]; 
   python-with-packages = python.withPackages python-packages;
