@@ -1,7 +1,9 @@
-#! /usr/bin/env -S python3 -u
+#! /usr/bin/env python3
 
 # srtgen.py
 # Generate subtitles for video file
+# https://github.com/milahu/srtgen
+# MIT license
 
 # config
 config_language_code = 'en' # english https://cloud.google.com/speech-to-text/docs/languages
