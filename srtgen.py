@@ -71,6 +71,9 @@ def out(*args, **kwargs):
 def log_usage():
     argv0 = os.path.basename(sys.argv[0])
     stderr(f"usage")
+    stderr(f"  {argv0} path/to/input-video.mp4")
+    stderr()
+    stderr(f"optional arguments")
     stderr(f"  {argv0} --apikey path/to/apikey.json path/to/input-video.mp4")
     stderr()
     stderr(f"config files")
