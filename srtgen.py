@@ -68,26 +68,39 @@ def out(*args, **kwargs):
     else:
         log("not writing to output_file_path") # this should not happen
 
-def print_usage():
+def log_usage():
     argv0 = os.path.basename(sys.argv[0])
     stderr(f"usage")
-    stderr(f"  {argv0} --apikey path/to/keyfile.json path/to/input-video.mp4")
+    stderr(f"  {argv0} --apikey path/to/apikey.json path/to/input-video.mp4")
+    stderr()
+    stderr(f"config files")
+    stderr(f"  $HOME/.config/srtgen/apikey.json")
     stderr()
     stderr(f"environment variables")
-    stderr(f"  GOOGLE_APPLICATION_CREDENTIALS=path/to/keyfile.json {argv0} path/to/input-video.mp4")
+    stderr(f"  GOOGLE_APPLICATION_CREDENTIALS=path/to/apikey.json {argv0} path/to/input-video.mp4")
     stderr()
     stderr(f"keyfile")
     stderr(f"  This program requires a Google account and an API key")
     stderr(f"  https://console.cloud.google.com/projectcreate")
 
 def check_api_key():
-    p = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-    if not p or not os.path.exists(p):
-        log("please set --apikey or GOOGLE_APPLICATION_CREDENTIALS")
-        print_usage()
-        sys.exit(1)
-    else:
-        log("using api key", os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
+    global apikey_from_argv
+    apikey_candidates = [
+        apikey_from_argv,
+        os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"),
+        os.environ.get("HOME") + "/.config/srtgen/apikey.json",
+    ]
+    for apikey in apikey_candidates:
+        if not apikey:
+            continue
+        log("trying api key", apikey)
+        if os.path.exists(apikey):
+            log("using api key", apikey)
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = apikey
+            return
+    log("apikey is missing")
+    log_usage()
+    sys.exit(1)
 
 def format_time_srt(seconds):
     return datetime.datetime.fromtimestamp(seconds, tz=datetime.timezone.utc).strftime('%H:%M:%S,%f')[:-3] # note: comma for SRT format
@@ -319,18 +332,21 @@ def transcribe_file(input_video_path):
     log(f"recognized all {len(chunk_list)} chunks")
     return response
 
+apikey_from_argv = None
+
 def main():
+    global apikey_from_argv
     # parse arguments
     # TODO better ... use argparse
     try:
         if sys.argv[1] == "--apikey":
-            log(f"setting GOOGLE_APPLICATION_CREDENTIALS from argument: --apikey {sys.argv[2]}")
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = sys.argv[2]
+            log(f"using api key from argument: --apikey {sys.argv[2]}")
+            apikey_from_argv = sys.argv[2]
             sys.argv = sys.argv[0:1] + sys.argv[3:]
 
         input_video_path = sys.argv[1]
     except Exception as e:
-        print_usage()
+        log_usage()
         if isinstance(e, IndexError):
             sys.exit(1)
         raise
