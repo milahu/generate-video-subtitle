@@ -7,16 +7,18 @@ Using [Google Cloud Speech-To-Text API](https://cloud.google.com/speech-to-text/
 ## usage
 
 ```
-$ ./srtgen
-log: 
-log: usage:
-log:   ./srtgen --apikey path/to/keyfile.json input-video.mp4
-log:   GOOGLE_APPLICATION_CREDENTIALS=path/to/keyfile.json ./srtgen.py input-video.mp4
-log: 
+$ ./srtgen.py 
+usage:
+  srtgen.py --apikey path/to/keyfile.json path/to/input-video.mp4
+
+set keyfile via environment variable:
+  GOOGLE_APPLICATION_CREDENTIALS=path/to/keyfile.json srtgen.py path/to/input-video.mp4
 ```
 
 subtitle is written to stdout and `output/xxxxxx-input-video.mp4/output_file.srt`  
 where `xxxxxx` is the sha1 hash of the input video file
+
+temporary files are stored in `output/xxxxxx-input-video.mp4/` 
 
 ## features
 
@@ -38,3 +40,4 @@ where `xxxxxx` is the sha1 hash of the input video file
 based on
 
 * https://github.com/plutowang/generate-video-subtitle
+* https://cloud.google.com/speech-to-text/docs/basics

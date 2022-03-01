@@ -1,15 +1,7 @@
 #! /usr/bin/env -S python3 -u
 
-# https://cloud.google.com/speech-to-text/docs/basics
-
-"""
-Note: In this file, the default config:
-        1. sample_rate_hertz=16000,
-        2. language_code='zh'
-        3. encoding='FLAC'
-        4. this config would set several phrases
-            for specific vedio "Savvy _June Cut_final.mp4"
-"""
+# srtgen.py
+# Generate subtitles for video file
 
 # config
 config_language_code = 'en' # english
@@ -18,15 +10,15 @@ config_min_silence_len = 1500 # high value -> few long chunks
 config_seek_step = 100 # high value -> split faster
 config_silence_thresh = -14 # high value -> many short chunks
 
+# api constants
 api_filesize_limit = 10485760
 api_duration_limit = 60 # API limit: 400 Inline audio exceeds duration limit. Please use a GCS URI.
-
+api_audio_sample_rate = 16000
 
 import sys
 import io
 import os
 import codecs
-import timestr
 import string
 import subprocess
 import hashlib
@@ -47,6 +39,9 @@ from datetime import datetime, timezone
 def log(*args, **kwargs):
     args = ["log: " + " ".join([str(a) for a in args]).replace("\n", "\nlog: ")]
     #args = ["log:"] + list(args)
+    stderr(*args, **kwargs)
+
+def stderr(*args, **kwargs):
     kwargs["file"] = sys.stderr
     print(*args, **kwargs)
 
@@ -57,8 +52,7 @@ def dbg(*args, **kwargs):
     if not enable_debug:
         return
     args = ["dbg:"] + list(args)
-    kwargs["file"] = sys.stderr
-    print(*args, **kwargs)
+    stderr(*args, **kwargs)
 
 output_file_path = None
 output_file_handle = None
@@ -74,23 +68,22 @@ def out(*args, **kwargs):
     else:
         log("not writing to output_file_path") # this should not happen
 
-def log_usage():
-    log()
-    log(f"usage:")
-    log(f"  {sys.argv[0]} --apikey path/to/keyfile.json input-video.mp4")
-    log(f"  GOOGLE_APPLICATION_CREDENTIALS=path/to/keyfile.json {sys.argv[0]} input-video.mp4")
-    log()
+def print_usage():
+    argv0 = os.path.basename(sys.argv[0])
+    stderr(f"usage:")
+    stderr(f"  {argv0} --apikey path/to/keyfile.json path/to/input-video.mp4")
+    stderr()
+    stderr(f"set keyfile via environment variable:")
+    stderr(f"  GOOGLE_APPLICATION_CREDENTIALS=path/to/keyfile.json {argv0} path/to/input-video.mp4")
 
 def check_api_key():
     p = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
     if not p or not os.path.exists(p):
         log("please set --apikey or GOOGLE_APPLICATION_CREDENTIALS")
-        log_usage()
+        print_usage()
         sys.exit(1)
     else:
         log("using api key", os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
-
-flac_audio_rate = 16000
 
 def format_time_srt(seconds):
     return datetime.fromtimestamp(seconds, tz=timezone.utc).strftime('%H:%M:%S,%f')[:-3] # note: comma for SRT format
@@ -120,7 +113,7 @@ def transcribe_file(input_video_path):
     if os.path.exists(speech_file):
         log("speech_file exists -> dont run ffmpeg")
     else:
-        ffmpeg_args = ["ffmpeg", "-loglevel", "warning", "-stats", "-i", input_video_path, "-f", "flac", "-ar", str(flac_audio_rate), "-ac", "1", "-vn", speech_file]
+        ffmpeg_args = ["ffmpeg", "-loglevel", "warning", "-stats", "-i", input_video_path, "-f", "flac", "-ar", str(api_audio_sample_rate), "-ac", "1", "-vn", speech_file]
         log(f"ffmpeg_args = {ffmpeg_args}")
         subprocess.run(ffmpeg_args)
 
@@ -330,8 +323,10 @@ def main():
             sys.argv = sys.argv[0:1] + sys.argv[3:]
 
         input_video_path = sys.argv[1]
-    except Exception:
-        log_usage()
+    except Exception as e:
+        print_usage()
+        if isinstance(e, IndexError):
+            sys.exit(1)
         raise
 
     check_api_key()
