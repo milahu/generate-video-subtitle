@@ -2,7 +2,10 @@
 
 Generate subtitles for video file
 
-Using [Google Cloud Speech-To-Text API](https://cloud.google.com/speech-to-text/docs/languages)
+Using [Google Cloud Speech-To-Text API](https://cloud.google.com/speech-to-text)
+
+This requires a Google account and an API key:
+[Create project on Google Cloud](https://console.cloud.google.com/projectcreate)
 
 ## usage
 
@@ -37,7 +40,26 @@ temporary files are stored in `output/xxxxxx-input-video.mp4/`
 
 ## related
 
-based on
+### based on
 
 * https://github.com/plutowang/generate-video-subtitle
 * https://cloud.google.com/speech-to-text/docs/basics
+
+### postprocessing tools
+
+* subtitleeditor
+
+### similar tools
+
+* https://github.com/topics/subtitles-generator
+  * https://github.com/nestyme/Subtitles-generator
+
+## todo
+
+* use `speech_recognition` module
+  * we need a service that returns timestamps for every word
+    * google cloud speeech: [enable_word_time_offsets=True](https://cloud.google.com/speech-to-text/docs/async-time-offsets)
+* automatic postprocessing
+  * reduce manual work
+  * split long sentences
+  * merge short sentences
