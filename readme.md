@@ -51,8 +51,12 @@ temporary files are stored in `output/xxxxxx-input-video.mp4/`
 
 ### postprocessing tools
 
-* [subtitleeditor](https://github.com/kitone/subtitleeditor)
-* [translatesubtitles.co](https://translatesubtitles.co/)
+* edit subtitles
+  * [aegisub](https://github.com/TypesettingTools/Aegisub)
+  * [gaupol](https://github.com/otsaloma/gaupol)
+  * [subtitleeditor](https://github.com/kitone/subtitleeditor)
+* translate subtitles
+  * [translatesubtitles.co](https://translatesubtitles.co/)
 
 ### similar tools
 
