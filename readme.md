@@ -86,6 +86,10 @@ temporary files are stored in `output/xxxxxx-input-video.mp4/`
 ## todo
 
 * use `speech_recognition` module, so srtgen can use multiple backend services
+  * support offline speech recognition
+    * mozilla deepspeech
+    * vosk
+    * Picovoice https://picovoice.ai/docs/picovoice/
   * we need a service that returns timestamps for every word
     * google cloud speeech: [enable_word_time_offsets=True](https://cloud.google.com/speech-to-text/docs/async-time-offsets)
     * alternative: synchronize words and audio waveform
