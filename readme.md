@@ -96,6 +96,11 @@ temporary files are stored in `output/xxxxxx-input-video.mp4/`
       * https://github.com/otsaloma?tab=stars&q=subtitle
         * https://github.com/smacke/ffsubsync Automagically synchronize subtitles with video.
         * https://github.com/kaegi/alass "Automatic Language-Agnostic Subtitle Synchronization"
+* hybrid of offline and online speech recognition
+  * deepspeech for offline speech recognition
+  * google for online speech recognition
+  * can deepspeech return confidence values?
+  * run deepspeech with different models? (and manually select the best result?)
 * automatic postprocessing
   * reduce manual work
   * split long sentences
