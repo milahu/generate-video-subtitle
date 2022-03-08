@@ -70,11 +70,16 @@ temporary files are stored in `output/xxxxxx-input-video.mp4/`
 
 ### similar tools
 
+* https://github.com/BingLingGroup/autosub
+  * online speech recognition
+    * Google
+    * Xfyun
+    * Baidu
 * https://github.com/abhirooptalasila/AutoSub
-  * using Mozilla DeepSpeech
   * offline speech recognition
+    * Mozilla DeepSpeech
     * lower quality than google speech
-    * limited by user hardware (space + time)
+    * limited by user hardware: space, time, cpu instruction set (binaries dont run on weak cpus)
 * https://github.com/topics/subtitles-generator
   * https://github.com/nestyme/Subtitles-generator
 
